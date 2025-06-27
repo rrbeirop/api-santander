@@ -30,6 +30,7 @@ class ContaRepository extends ServiceEntityRepository
         ;
     }
 
+
     //    public function findOneBySomeField($value): ?Conta
     //    {
     //        return $this->createQueryBuilder('c')
@@ -39,4 +40,6 @@ class ContaRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    
 }
