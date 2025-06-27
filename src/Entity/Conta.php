@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ContaRepository;
+use Doctrine\DBAL\Types\BigIntType;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -14,7 +15,7 @@ class Conta
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column (type:Types::BIGINT)]
     private ?int $numero = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 2)]
