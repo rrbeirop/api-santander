@@ -6,11 +6,14 @@ use App\Dto\UsuarioContaDto;
 use App\Dto\UsuarioDto;
 use App\Entity\Conta;
 use App\Entity\Usuario;
+use App\Filter\UsuarioContaFilter;
 use App\Repository\ContaRepository;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -84,7 +87,7 @@ final class UsuariosController extends AbstractController
         //Instanciar o objeto Conta
         $conta = new Conta();
         $numeroConta = preg_replace('/\D/', '', uniqid());
-       // $numeroConta = rand(1, 99999);
+        //$numeroConta = rand(1, 99999);
         $conta->setNumero($numeroConta);
         $conta->setSaldo('0');
         $conta->setUsuario($usuario);
@@ -94,36 +97,30 @@ final class UsuariosController extends AbstractController
         $entityManager->flush();
 
         //retornar os dados de usuário e conta
-        return $this->json([$usuario]);
-
-        //retornar dados de usuario e conta
         $usuarioContaDto = new UsuarioContaDto();
         $usuarioContaDto->setId($usuario->getId());
         $usuarioContaDto->setNome($usuario->getNome());
         $usuarioContaDto->setCpf($usuario->getCpf());
         $usuarioContaDto->setEmail($usuario->getEmail());
         $usuarioContaDto->setTelefone($usuario->getTelefone());
-        $usuarioContaDto->setNumeroConta($conta->getNumeroConta());
-        $usuarioContaDto-> setSaldo($conta->getSaldo());
+        $usuarioContaDto->setNumeroConta($conta->getNumero());
+        $usuarioContaDto->setSaldo($conta->getSaldo());
 
-        return $this ->json($usuarioContaDto, status: 201);
+        return $this->json($usuarioContaDto, status: 201);
     }
 
     #[Route('/usuarios/{id}', name: 'usuarios_buscar', methods: ['GET'])]
-    public function buscarPorId (
+    public function buscarPorId(
         int $id,
         ContaRepository $contaRepository
-
-    ) {  
+    ) {
         $conta = $contaRepository->findByUsuarioId($id);
-        
-        if (!$conta) {
-            return $this ->json ([
-                'message' => 'Usuario não encontrado'
 
+        if(!$conta) {
+            return $this->json([
+                'message' => 'Usuário não encontrado!'
             ], status: 404);
         }
-
         $usuarioContaDto = new UsuarioContaDto();
         $usuarioContaDto->setId($conta->getUsuario()->getId());
         $usuarioContaDto->setNome($conta->getUsuario()->getNome());
@@ -134,14 +131,25 @@ final class UsuariosController extends AbstractController
         $usuarioContaDto->setSaldo($conta->getSaldo());
 
         return $this->json($usuarioContaDto);
-    
+    }
 
-        }
-        
+    #[Route('/usuarios', name: 'usuarios_buscar_filtro', methods: ['GET'])]
+    public function buscarPorFiltro(
+        #[MapQueryString()]
+        UsuarioContaFilter $filter,
+        ContaRepository $contaRepository
+    ): JsonResponse {
+        $filtro = $filter->getPesquisa();
+        $contas = $contaRepository->findByFiltro($filtro);
+        return $this->json($contas);
+    }
 
-
-
-    
+    #[Route('/teste', name: 'teste', methods: ['GET'])]
+public function teste(): JsonResponse
+{
+    return $this->json(['ok' => true]);
 }
-    
-    
+
+}
+
+//10.38.0.77
