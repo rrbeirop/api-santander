@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Dto\ContaDto;
 use App\Dto\TransacaoExtratoDto;
 use App\Dto\TransacaoRealizarDto;
+use App\Entity\Conta;
 use App\Entity\Transacao;
 use App\Repository\ContaRepository;
 use App\Repository\TransacaoRepository;
@@ -103,7 +104,9 @@ final class TransacoesController extends AbstractController
 
         $entityManager->flush();
 
-        return new Response(status: 204);
+        $transacaoDto = $this->converterTransacaoExtratoDto($transacao, $contaOrigem);
+
+        return $this->json($transacaoDto, status: 201);
     }
 
     #[Route('/transacoes/{idUsuario}/extrato', name: 'transacoes_extrato', methods: ['GET'])]
@@ -123,37 +126,8 @@ final class TransacoesController extends AbstractController
 
         $saida = [];
         foreach ($transacoes as $transacao) {
-            $transacaoDto = new TransacaoExtratoDto();
 
-            $transacaoDto->setId($transacao->getId());
-            $transacaoDto->setValor($transacao->getValor());
-            $transacaoDto->setDataHora($transacao->getDataHora());
-
-            if ($conta->getId() === $transacao->getContaOrigem()->getId()) {
-                $transacaoDto->setTipo('ENVIOU');
-            } else if ($conta->getId() === $transacao->getContaDestino()->getId()) {
-                $transacaoDto->setTipo('RECEBEU');
-            }
-
-            // origem
-            $origem = $transacao->getContaOrigem();
-            $contaOrigemDto = new ContaDto();
-            $contaOrigemDto->setId($origem->getUsuario()->getId());
-            $contaOrigemDto->setNome($origem->getUsuario()->getNome());
-            $contaOrigemDto->setCpf($origem->getUsuario()->getCpf());
-            $contaOrigemDto->setNumeroConta($origem->getNumero());
-
-            $transacaoDto->setOrigem($contaOrigemDto);
-
-            // destino
-            $destino = $transacao->getContaDestino();
-            $contaDestinoDto = new ContaDto();
-            $contaDestinoDto->setId($destino->getUsuario()->getId());
-            $contaDestinoDto->setNome($destino->getUsuario()->getNome());
-            $contaDestinoDto->setCpf($destino->getUsuario()->getCpf());
-            $contaDestinoDto->setNumeroConta($destino->getNumero());
-
-            $transacaoDto->setDestino($contaDestinoDto);
+            $transacaoDto = $this->converterTransacaoExtratoDto($transacao, $conta);
 
             array_push($saida, $transacaoDto);
         }
@@ -161,5 +135,40 @@ final class TransacoesController extends AbstractController
         return $this->json($saida);
     }
 
+    private function converterTransacaoExtratoDto(Transacao $transacao, Conta $conta): TransacaoExtratoDto
+    {
+        $transacaoDto = new TransacaoExtratoDto();
 
+        $transacaoDto->setId($transacao->getId());
+        $transacaoDto->setValor($transacao->getValor());
+        $transacaoDto->setDataHora($transacao->getDataHora());
+
+        if ($conta->getId() === $transacao->getContaOrigem()->getId()) {
+            $transacaoDto->setTipo('ENVIOU');
+        } else if ($conta->getId() === $transacao->getContaDestino()->getId()) {
+            $transacaoDto->setTipo('RECEBEU');
+        }
+
+        // origem
+        $origem = $transacao->getContaOrigem();
+        $contaOrigemDto = new ContaDto();
+        $contaOrigemDto->setId($origem->getUsuario()->getId());
+        $contaOrigemDto->setNome($origem->getUsuario()->getNome());
+        $contaOrigemDto->setCpf($origem->getUsuario()->getCpf());
+        $contaOrigemDto->setNumeroConta($origem->getNumero());
+
+        $transacaoDto->setOrigem($contaOrigemDto);
+
+        // destino
+        $destino = $transacao->getContaDestino();
+        $contaDestinoDto = new ContaDto();
+        $contaDestinoDto->setId($destino->getUsuario()->getId());
+        $contaDestinoDto->setNome($destino->getUsuario()->getNome());
+        $contaDestinoDto->setCpf($destino->getUsuario()->getCpf());
+        $contaDestinoDto->setNumeroConta($destino->getNumero());
+
+        $transacaoDto->setDestino($contaDestinoDto);
+
+        return $transacaoDto;
+    }
 }

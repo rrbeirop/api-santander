@@ -33,15 +33,15 @@ class TransacaoRepository extends ServiceEntityRepository
 }
 
 
-        public function findByContaOrigemOrContaDestino($id_conta): ?Usuario
+        public function findByContaOrigemOrContaDestino($id_conta): array
 {
     return $this->createQueryBuilder('t')
         ->where('t.contaOrigem = :id')
         ->orWhere('t.contaDestino = :id')
         ->setParameter('id', $id_conta)
-        ->orderBy('t.daHora', 'DESC')
+        ->orderBy('t.dataHora', 'DESC')
         ->getQuery()
-        ->getOneOrNullResult();
+        ->getResult();
 }
 
 
