@@ -84,7 +84,7 @@ final class UsuariosController extends AbstractController
         $usuario->setEmail($usuarioDto->getEmail());
         //$usuario->setSenha($usuarioDto->getSenha());
 
-        #CRIAR SENHA COM HASH
+        #CRIAR SENHA COM HASh
         $senhaComHash = $passwordHasher->hashPassword($usuario, $usuarioDto->getSenha());
         $usuario->setSenha($senhaComHash);
 
